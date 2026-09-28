@@ -20,7 +20,7 @@ $ErrorActionPreference = 'Stop'
 
 $MirrorDurationSeconds = [int](17.5 * 60)
 $CacheMaxAgeHours = 24
-$Version = '2.0.0'
+$Version = '2.1.0'
 
 # FIFO of games waiting for the currently running mirror to finish - only one
 # mirror runs at a time, so anything requested while one is active gets

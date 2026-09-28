@@ -72,7 +72,9 @@ function Stop-Mirror {
 
     $matched = @($all | Where-Object { $_.DisplayName -eq $Query -or $_.ExeName -eq $Query })
     if ($matched.Count -eq 0) {
-        $matched = @($all | Where-Object { $_.DisplayName -like "*$Query*" -or $_.ExeName -like "*$Query*" })
+        # Escaped so a typed "[" etc. is literal instead of a malformed wildcard.
+        $pattern = "*$([WildcardPattern]::Escape($Query))*"
+        $matched = @($all | Where-Object { $_.DisplayName -like $pattern -or $_.ExeName -like $pattern })
     }
 
     if ($matched.Count -eq 0) {

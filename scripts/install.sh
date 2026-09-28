@@ -48,7 +48,11 @@ PWSH_BIN=""
 if command -v pwsh >/dev/null 2>&1; then
     PWSH_BIN="$(command -v pwsh)"
 elif [[ -d "$CACHE_DIR/pwsh" ]]; then
-    candidate=$(find "$CACHE_DIR/pwsh" -maxdepth 2 -type f -name pwsh 2>/dev/null | sort -V | tail -1)
+    # `|| true` on every lookup pipeline below: under `set -e -o pipefail`,
+    # a pipeline stage that merely finds nothing (grep exit 1) or a sort
+    # without -V support on an older macOS would abort the whole script
+    # silently instead of taking the fallback path.
+    candidate=$(find "$CACHE_DIR/pwsh" -maxdepth 2 -type f -name pwsh 2>/dev/null | sort -V | tail -1 || true)
     if [[ -n "$candidate" ]]; then
         chmod +x "$candidate" 2>/dev/null || true
         PWSH_BIN="$candidate"
@@ -71,7 +75,7 @@ if [[ -z "$PWSH_BIN" ]]; then
     PWSH_VERSION="$PWSH_FALLBACK_VERSION"
     resolved_url=$(curl -fsSLI --max-time 10 -o /dev/null -w '%{url_effective}' \
         "https://github.com/PowerShell/PowerShell/releases/latest" 2>/dev/null || true)
-    resolved_tag=$(echo "$resolved_url" | grep -oE 'tag/v[0-9]+\.[0-9]+\.[0-9]+' | sed 's#tag/v##')
+    resolved_tag=$(echo "$resolved_url" | grep -oE 'tag/v[0-9]+\.[0-9]+\.[0-9]+' | sed 's#tag/v##' || true)
     if [[ -n "$resolved_tag" ]]; then
         PWSH_VERSION="$resolved_tag"
     fi
@@ -90,7 +94,7 @@ if [[ -z "$PWSH_BIN" ]]; then
     # Microsoft publishes this file as UTF-16LE (Windows default) - convert
     # before grepping it, or every line just looks empty to grep/awk.
     expected=$(iconv -f UTF-16LE -t UTF-8 "$WORK_DIR/hashes.sha256" 2>/dev/null |
-        grep -F "$ASSET" | awk '{print $1}' | tr -d '\r')
+        grep -F "$ASSET" | awk '{print $1}' | tr -d '\r' || true)
     actual=$(shasum -a 256 "$WORK_DIR/$ASSET" | awk '{print $1}')
     if [[ -z "$expected" || "$expected" != "$actual" ]]; then
         echo "Checksum verification failed for $ASSET (expected '$expected', got '$actual') - aborting." >&2

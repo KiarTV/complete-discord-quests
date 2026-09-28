@@ -11,15 +11,31 @@ function Get-DetectableApps {
         ((Get-Item $script:CacheFile).LastWriteTime -gt (Get-Date).AddHours(-$CacheMaxAgeHours))) {
         $age = Format-TimeAgo (Get-Item $script:CacheFile).LastWriteTime
         Write-Meta "Using cached game list (refreshed $age)"
-        return Get-Content $script:CacheFile -Raw | ConvertFrom-Json
+        return Read-DetectableAppsCache
     }
 
-    $apps = Invoke-WithSpinner -Message "Fetching Discord's detectable game list..." -Action {
-        Invoke-RestMethod "https://discord.com/api/v10/applications/detectable"
+    try {
+        $apps = Invoke-WithSpinner -Message "Fetching Discord's detectable game list..." -Action {
+            Invoke-RestMethod "https://discord.com/api/v10/applications/detectable"
+        }
+    } catch {
+        # An expired list is still far better than nothing - game executable
+        # names rarely change, so only give up if there's no cache at all.
+        if (-not (Test-Path $script:CacheFile)) { throw }
+        Write-Warn2 "Couldn't refresh Discord's game list ($($_.Exception.Message)) - using the older cached copy"
+        return Read-DetectableAppsCache
     }
-    $apps | ConvertTo-Json -Depth 10 | Set-Content $script:CacheFile
+    # Explicit BOM-less UTF-8 via .NET: Set-Content/Get-Content in Windows
+    # PowerShell 5.1 default to the ANSI codepage, which turned every
+    # CJK/Korean game name in the cache into "????" (confirmed - 68 of them),
+    # making those games impossible to match.
+    [System.IO.File]::WriteAllText($script:CacheFile, ($apps | ConvertTo-Json -Depth 10), (New-Object System.Text.UTF8Encoding($false)))
     Write-Meta "Cached $($apps.Count) known games"
     return $apps
+}
+
+function Read-DetectableAppsCache {
+    return [System.IO.File]::ReadAllText($script:CacheFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
 }
 
 function Resolve-SteamCanonicalName {
@@ -51,8 +67,9 @@ function Get-MatchScore {
     if ($c.Contains($q)) { return 75 }
 
     $qWords = $q -split '\s+'
-    $matched = ($qWords | Where-Object { $c.Contains($_) }).Count
     if ($qWords.Count -eq 0) { return 0 }
+    $matched = 0
+    foreach ($w in $qWords) { if ($c.Contains($w)) { $matched++ } }
     return [math]::Round(60 * $matched / $qWords.Count)
 }
 
@@ -69,9 +86,16 @@ function Get-StorefrontLinkCount {
 function Find-GameMatch {
     param($Apps, [string]$Query)
 
+    # Plain foreach loops, not ForEach-Object/Measure-Object pipelines - this
+    # runs over the whole ~25k-entry list, and per-app pipeline setup made a
+    # single lookup take ~8s on Windows PowerShell 5.1 (twice that when the
+    # Steam retry runs).
     $scored = foreach ($app in $Apps) {
-        $names = @($app.name) + @($app.aliases)
-        $best = ($names | ForEach-Object { Get-MatchScore -Query $Query -Candidate $_ } | Measure-Object -Maximum).Maximum
+        $best = 0
+        foreach ($name in @($app.name) + @($app.aliases)) {
+            $s = Get-MatchScore -Query $Query -Candidate $name
+            if ($s -gt $best) { $best = $s }
+        }
         if ($best -gt 0) {
             [PSCustomObject]@{ App = $app; Score = $best }
         }

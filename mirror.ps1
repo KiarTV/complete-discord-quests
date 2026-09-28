@@ -26,7 +26,7 @@ $ErrorActionPreference = 'Stop'
 
 $MirrorDurationSeconds = [int](17.5 * 60)
 $CacheMaxAgeHours = 24
-$Version = '2.0.0'
+$Version = '2.1.0'
 
 # FIFO of games waiting for the currently running mirror to finish - only one
 # mirror runs at a time, so anything requested while one is active gets
@@ -532,15 +532,31 @@ function Get-DetectableApps {
         ((Get-Item $script:CacheFile).LastWriteTime -gt (Get-Date).AddHours(-$CacheMaxAgeHours))) {
         $age = Format-TimeAgo (Get-Item $script:CacheFile).LastWriteTime
         Write-Meta "Using cached game list (refreshed $age)"
-        return Get-Content $script:CacheFile -Raw | ConvertFrom-Json
+        return Read-DetectableAppsCache
     }
 
-    $apps = Invoke-WithSpinner -Message "Fetching Discord's detectable game list..." -Action {
-        Invoke-RestMethod "https://discord.com/api/v10/applications/detectable"
+    try {
+        $apps = Invoke-WithSpinner -Message "Fetching Discord's detectable game list..." -Action {
+            Invoke-RestMethod "https://discord.com/api/v10/applications/detectable"
+        }
+    } catch {
+        # An expired list is still far better than nothing - game executable
+        # names rarely change, so only give up if there's no cache at all.
+        if (-not (Test-Path $script:CacheFile)) { throw }
+        Write-Warn2 "Couldn't refresh Discord's game list ($($_.Exception.Message)) - using the older cached copy"
+        return Read-DetectableAppsCache
     }
-    $apps | ConvertTo-Json -Depth 10 | Set-Content $script:CacheFile
+    # Explicit BOM-less UTF-8 via .NET: Set-Content/Get-Content in Windows
+    # PowerShell 5.1 default to the ANSI codepage, which turned every
+    # CJK/Korean game name in the cache into "????" (confirmed - 68 of them),
+    # making those games impossible to match.
+    [System.IO.File]::WriteAllText($script:CacheFile, ($apps | ConvertTo-Json -Depth 10), (New-Object System.Text.UTF8Encoding($false)))
     Write-Meta "Cached $($apps.Count) known games"
     return $apps
+}
+
+function Read-DetectableAppsCache {
+    return [System.IO.File]::ReadAllText($script:CacheFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
 }
 
 function Resolve-SteamCanonicalName {
@@ -572,8 +588,9 @@ function Get-MatchScore {
     if ($c.Contains($q)) { return 75 }
 
     $qWords = $q -split '\s+'
-    $matched = ($qWords | Where-Object { $c.Contains($_) }).Count
     if ($qWords.Count -eq 0) { return 0 }
+    $matched = 0
+    foreach ($w in $qWords) { if ($c.Contains($w)) { $matched++ } }
     return [math]::Round(60 * $matched / $qWords.Count)
 }
 
@@ -590,9 +607,16 @@ function Get-StorefrontLinkCount {
 function Find-GameMatch {
     param($Apps, [string]$Query)
 
+    # Plain foreach loops, not ForEach-Object/Measure-Object pipelines - this
+    # runs over the whole ~25k-entry list, and per-app pipeline setup made a
+    # single lookup take ~8s on Windows PowerShell 5.1 (twice that when the
+    # Steam retry runs).
     $scored = foreach ($app in $Apps) {
-        $names = @($app.name) + @($app.aliases)
-        $best = ($names | ForEach-Object { Get-MatchScore -Query $Query -Candidate $_ } | Measure-Object -Maximum).Maximum
+        $best = 0
+        foreach ($name in @($app.name) + @($app.aliases)) {
+            $s = Get-MatchScore -Query $Query -Candidate $name
+            if ($s -gt $best) { $best = $s }
+        }
         if ($best -gt 0) {
             [PSCustomObject]@{ App = $app; Score = $best }
         }
@@ -740,7 +764,9 @@ function Stop-Mirror {
 
     $matched = @($all | Where-Object { $_.DisplayName -eq $Query -or $_.ExeName -eq $Query })
     if ($matched.Count -eq 0) {
-        $matched = @($all | Where-Object { $_.DisplayName -like "*$Query*" -or $_.ExeName -like "*$Query*" })
+        # Escaped so a typed "[" etc. is literal instead of a malformed wildcard.
+        $pattern = "*$([WildcardPattern]::Escape($Query))*"
+        $matched = @($all | Where-Object { $_.DisplayName -like $pattern -or $_.ExeName -like $pattern })
     }
 
     if ($matched.Count -eq 0) {
@@ -1221,39 +1247,43 @@ function Invoke-QuestMirror {
 
     $apps = Get-DetectableApps
 
-    $matches = Find-GameMatch -Apps $apps -Query $RawName
-    if ($matches.Count -eq 0 -or $matches[0].Score -lt 75) {
+    # Not named $matches - that's PowerShell's automatic -match variable
+    # (names are case-insensitive), so any -match in between would clobber it.
+    # @() so zero results is an empty array rather than $null, which throws
+    # "Cannot index into a null array" on the [0] below.
+    $gameMatches = @(Find-GameMatch -Apps $apps -Query $RawName)
+    if ($gameMatches.Count -eq 0 -or $gameMatches[0].Score -lt 75) {
         $canonical = Resolve-SteamCanonicalName -RawName $RawName
         if ($canonical -and $canonical -ne $RawName) {
             Write-Meta "Steam suggests `"$canonical`" - retrying..."
-            $retry = Find-GameMatch -Apps $apps -Query $canonical
-            if ($retry.Count -gt 0 -and $retry[0].Score -gt $matches[0].Score) {
-                $matches = $retry
+            $retry = @(Find-GameMatch -Apps $apps -Query $canonical)
+            if ($retry.Count -gt 0 -and ($gameMatches.Count -eq 0 -or $retry[0].Score -gt $gameMatches[0].Score)) {
+                $gameMatches = $retry
             }
         }
     }
 
-    if ($matches.Count -eq 0) {
+    if ($gameMatches.Count -eq 0) {
         Write-Err2 "No matching game found for `"$RawName`""
         return
     }
 
-    $chosen = $matches[0].App
-    if ($matches.Count -gt 1 -and $matches[0].Score -lt 90) {
+    $chosen = $gameMatches[0].App
+    if ($gameMatches.Count -gt 1 -and $gameMatches[0].Score -lt 90) {
         Write-Warn2 "Multiple possible matches:"
-        for ($i = 0; $i -lt $matches.Count; $i++) {
-            Write-Host ("      [{0}] {1}" -f ($i + 1), $matches[$i].App.name) -ForegroundColor Gray
+        for ($i = 0; $i -lt $gameMatches.Count; $i++) {
+            Write-Host ("      [{0}] {1}" -f ($i + 1), $gameMatches[$i].App.name) -ForegroundColor Gray
         }
         if ($Interactive) {
             Write-Host -NoNewline "    Pick one (Enter for [1]): " -ForegroundColor DarkGray
             $pick = Read-Host
             $index = 0
-            $valid = $pick -and [int]::TryParse($pick, [ref]$index) -and $index -ge 1 -and $index -le $matches.Count
+            $valid = $pick -and [int]::TryParse($pick, [ref]$index) -and $index -ge 1 -and $index -le $gameMatches.Count
             if ($valid) {
-                $chosen = $matches[$index - 1].App
+                $chosen = $gameMatches[$index - 1].App
                 Write-Ok "Using [$index] $($chosen.name)"
             } elseif ($pick) {
-                Write-Meta "'$pick' isn't valid (1-$($matches.Count)), defaulting to [1]"
+                Write-Meta "'$pick' isn't valid (1-$($gameMatches.Count)), defaulting to [1]"
             }
         } else {
             Write-Meta "Non-interactive, defaulting to [1] $($chosen.name)"

@@ -29,39 +29,43 @@ function Invoke-QuestMirror {
 
     $apps = Get-DetectableApps
 
-    $matches = Find-GameMatch -Apps $apps -Query $RawName
-    if ($matches.Count -eq 0 -or $matches[0].Score -lt 75) {
+    # Not named $matches - that's PowerShell's automatic -match variable
+    # (names are case-insensitive), so any -match in between would clobber it.
+    # @() so zero results is an empty array rather than $null, which throws
+    # "Cannot index into a null array" on the [0] below.
+    $gameMatches = @(Find-GameMatch -Apps $apps -Query $RawName)
+    if ($gameMatches.Count -eq 0 -or $gameMatches[0].Score -lt 75) {
         $canonical = Resolve-SteamCanonicalName -RawName $RawName
         if ($canonical -and $canonical -ne $RawName) {
             Write-Meta "Steam suggests `"$canonical`" - retrying..."
-            $retry = Find-GameMatch -Apps $apps -Query $canonical
-            if ($retry.Count -gt 0 -and $retry[0].Score -gt $matches[0].Score) {
-                $matches = $retry
+            $retry = @(Find-GameMatch -Apps $apps -Query $canonical)
+            if ($retry.Count -gt 0 -and ($gameMatches.Count -eq 0 -or $retry[0].Score -gt $gameMatches[0].Score)) {
+                $gameMatches = $retry
             }
         }
     }
 
-    if ($matches.Count -eq 0) {
+    if ($gameMatches.Count -eq 0) {
         Write-Err2 "No matching game found for `"$RawName`""
         return
     }
 
-    $chosen = $matches[0].App
-    if ($matches.Count -gt 1 -and $matches[0].Score -lt 90) {
+    $chosen = $gameMatches[0].App
+    if ($gameMatches.Count -gt 1 -and $gameMatches[0].Score -lt 90) {
         Write-Warn2 "Multiple possible matches:"
-        for ($i = 0; $i -lt $matches.Count; $i++) {
-            Write-Host ("      [{0}] {1}" -f ($i + 1), $matches[$i].App.name) -ForegroundColor Gray
+        for ($i = 0; $i -lt $gameMatches.Count; $i++) {
+            Write-Host ("      [{0}] {1}" -f ($i + 1), $gameMatches[$i].App.name) -ForegroundColor Gray
         }
         if ($Interactive) {
             Write-Host -NoNewline "    Pick one (Enter for [1]): " -ForegroundColor DarkGray
             $pick = Read-Host
             $index = 0
-            $valid = $pick -and [int]::TryParse($pick, [ref]$index) -and $index -ge 1 -and $index -le $matches.Count
+            $valid = $pick -and [int]::TryParse($pick, [ref]$index) -and $index -ge 1 -and $index -le $gameMatches.Count
             if ($valid) {
-                $chosen = $matches[$index - 1].App
+                $chosen = $gameMatches[$index - 1].App
                 Write-Ok "Using [$index] $($chosen.name)"
             } elseif ($pick) {
-                Write-Meta "'$pick' isn't valid (1-$($matches.Count)), defaulting to [1]"
+                Write-Meta "'$pick' isn't valid (1-$($gameMatches.Count)), defaulting to [1]"
             }
         } else {
             Write-Meta "Non-interactive, defaulting to [1] $($chosen.name)"
