@@ -2,6 +2,8 @@
 
 **Finish Discord "play" Quests and collect the Orbs and rewards without downloading, installing, or playing the game.** Type the game's name and Discord sees it as running.
 
+**No .exe to download · no Steam account · no client mod · never runs inside Discord or uses your login · one ~1,350-line PowerShell script you can read before running it.**
+
 <p align="center">
   <img src="docs/demo.svg" alt="Typing roblox into quest-mirror starts a process that Discord detects as Roblox running" width="760">
 </p>
@@ -42,6 +44,24 @@ script downloads a portable copy once and reuses it after that. macOS support
 **hasn't been confirmed against a real Discord Quest yet**. If you try it,
 please [open an issue](https://github.com/KiarTV/complete-discord-quests/issues) and say
 whether your Quest progress moved.
+
+## How this compares to other ways of completing Quests
+
+There are a few different ways to complete Quests without playing, and each
+has trade-offs:
+
+| Approach | What you install | Runs inside Discord / uses your session | Quest types | Breaks when Discord updates |
+| --- | --- | --- | --- | --- |
+| **Renamed stand-in process (this tool)** | Nothing (one command) | No | Play | Rarely: it doesn't read Discord's internals |
+| Renamed stand-in process, desktop app | A downloaded .exe | No | Play | Rarely |
+| Console snippet or userscript | Nothing, but you enable Discord's DevTools and paste code | Yes | Most, including video | Can break on any Discord update |
+| Client mod plugin (Vencord etc.) | A modified Discord client | Yes | Most, including video | Can break on any Discord update |
+| Browser extension | An extension for Discord in the browser | Yes | Mostly video | Can break on any Discord update |
+
+This tool only does **play** Quests. If you need video Quests, one of the
+in-client approaches is the only option. If you only need play Quests and
+don't want anything touching your Discord client or session, that's what
+this is for.
 
 ## How to complete a Discord Quest without playing the game
 
@@ -88,9 +108,19 @@ Quests that ask you to **play** a game for a number of minutes. Video Quests
 are a different mechanism, and this tool doesn't do them.
 
 ### Can I get banned for this?
-Use it at your own risk. It doesn't modify Discord or talk to Discord's
-servers, but faking game activity to earn Quest rewards is against the spirit
-of Quests and may break Discord's Terms of Service.
+There is real risk. Discord has been handing out **Quest access suspensions**
+(reported as 14 to 15 days, under the reason *"Inauthentic Quest Completion"*)
+to people it believes automated Quests. Nothing stops it from going further.
+No method of completing Quests without playing is known to be safe, and that
+includes this one.
+
+This tool doesn't modify Discord, run inside it, or talk to Discord's
+servers. Your own Discord client sees a running program and reports it the
+way it reports any game. But that program is a renamed system executable in
+a cache folder, not the real game, and Discord's client can collect details
+about the executable it sees. Don't assume that difference is invisible to
+Discord.
+Only use this on an account you're prepared to have Quest-restricted.
 
 ### Discord isn't detecting the game. What now?
 - Make sure you **accepted the Quest first** and Discord is running.
