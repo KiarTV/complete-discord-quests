@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Discord Quest Game Mirror - macOS installer/launcher.
 #
-#   curl -fsSL https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/scripts/install.sh | bash
 #
 # Fully self-contained - no Homebrew, no sudo, nothing installed
 # system-wide. If `pwsh` isn't already on PATH, this downloads Microsoft's
@@ -25,7 +25,7 @@
 
 set -euo pipefail
 
-MIRROR_URL="https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/mirror.ps1"
+MIRROR_URL="https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/mirror.ps1"
 CACHE_DIR="$HOME/Library/Caches/quest-mirror"
 MIRROR_SCRIPT="$CACHE_DIR/mirror.ps1"
 

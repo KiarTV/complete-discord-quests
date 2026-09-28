@@ -5,7 +5,7 @@
 # =============================================================================
 # --- src/Main.Params.ps1 ---------------------------------------------------
 # Discord Quest Game Mirror
-# Interactive: irm https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/mirror.ps1 | iex
+# Interactive: irm https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/mirror.ps1 | iex
 # Non-interactive (scripting/testing): .\mirror.ps1 -GameName "Roblox" -ExeChoice 2
 #
 # Resolves a raw game name to the exact executable name Discord's Quest

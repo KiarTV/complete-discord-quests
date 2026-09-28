@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/KiarTV/Discord-Quest/releases/latest"><img src="https://img.shields.io/github/v/release/KiarTV/Discord-Quest?label=download" alt="Latest release"></a>
+  <a href="https://github.com/KiarTV/complete-discord-quests/releases/latest"><img src="https://img.shields.io/github/v/release/KiarTV/complete-discord-quests?label=download" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Windows-supported-2ea44f" alt="Windows supported">
   <img src="https://img.shields.io/badge/macOS-experimental-yellow" alt="macOS experimental">
   <img src="https://img.shields.io/badge/install-none%20needed-blue" alt="No install needed">
@@ -20,13 +20,13 @@
 2. **Open PowerShell** (press <kbd>Win</kbd>, type `powershell`, press Enter) and
    paste:
    ```powershell
-   irm https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/mirror.ps1 | iex
+   irm https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/mirror.ps1 | iex
    ```
 3. **Type the game's name** from the Quest (for example `roblox` or `apex legends`)
    and press Enter. Leave it running for about 15 minutes, then claim your
    reward in Discord.
 
-Prefer to download something? Grab **[QuestMirror-windows.zip](https://github.com/KiarTV/Discord-Quest/releases/latest/download/QuestMirror-windows.zip)**,
+Prefer to download something? Grab **[QuestMirror-windows.zip](https://github.com/KiarTV/complete-discord-quests/releases/latest/download/QuestMirror-windows.zip)**,
 extract it, and double-click `QuestMirror.cmd`.
 
 ### macOS (experimental)
@@ -34,13 +34,13 @@ extract it, and double-click `QuestMirror.cmd`.
 Paste into Terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/scripts/install.sh | bash
 ```
 
 You don't need Homebrew or an admin password. If PowerShell isn't installed, the
 script downloads a portable copy once and reuses it after that. macOS support
 **hasn't been confirmed against a real Discord Quest yet**. If you try it,
-please [open an issue](https://github.com/KiarTV/Discord-Quest/issues) and say
+please [open an issue](https://github.com/KiarTV/complete-discord-quests/issues) and say
 whether your Quest progress moved.
 
 ## How to complete a Discord Quest without playing the game

@@ -53,12 +53,12 @@ jobs:
 
           Or skip the download and paste this into PowerShell:
           ```powershell
-          irm https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/mirror.ps1 | iex
+          irm https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/mirror.ps1 | iex
           ```
 
           **macOS (experimental):** paste this into Terminal:
           ```bash
-          curl -fsSL https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/scripts/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/KiarTV/complete-discord-quests/master/scripts/install.sh | bash
           ```
           EOF
           gh release create "$GITHUB_REF_NAME" \
