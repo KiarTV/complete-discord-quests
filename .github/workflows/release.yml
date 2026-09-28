@@ -1,0 +1,67 @@
+# Publishes a GitHub Release when a version tag is pushed:
+#   git tag v2.1.0 && git push origin v2.1.0
+# The tag must match $Version in src/Main.Params.ps1, and the committed
+# mirror.ps1 must already be rebuilt from src/ (same check as ci.yml).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      # LF checkout, matching what build.ps1 writes - otherwise the
+      # runner's autocrlf default makes the rebuild diff noisy.
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+
+      - name: Verify build and version
+        shell: powershell
+        run: |
+          .\build.ps1
+          git diff --exit-code -- mirror.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'mirror.ps1 is out of date - run .\build.ps1 and commit it before tagging' }
+          $errors = $null; $tokens = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\mirror.ps1", [ref]$tokens, [ref]$errors)
+          if ($errors) { $errors; throw 'mirror.ps1 has syntax errors' }
+          $version = [regex]::Match((Get-Content src\Main.Params.ps1 -Raw), "\`$Version = '([^']+)'").Groups[1].Value
+          if ("v$version" -ne $env:GITHUB_REF_NAME) { throw "Tag $env:GITHUB_REF_NAME doesn't match `$Version '$version' in src\Main.Params.ps1" }
+
+      - name: Package
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory dist\QuestMirror | Out-Null
+          Copy-Item mirror.ps1, scripts\QuestMirror.cmd dist\QuestMirror\
+          Compress-Archive -Path dist\QuestMirror\* -DestinationPath dist\QuestMirror-windows.zip
+          Copy-Item mirror.ps1, scripts\install.sh dist\
+
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'EOF'
+          ## Download
+
+          **Windows:** download **QuestMirror-windows.zip** below, extract it, and double-click `QuestMirror.cmd`.
+          Then type the game name from your Discord Quest and press Enter.
+
+          Or skip the download and paste this into PowerShell:
+          ```powershell
+          irm https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/mirror.ps1 | iex
+          ```
+
+          **macOS (experimental):** paste this into Terminal:
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/KiarTV/Discord-Quest/master/scripts/install.sh | bash
+          ```
+          EOF
+          gh release create "$GITHUB_REF_NAME" \
+            dist/QuestMirror-windows.zip dist/mirror.ps1 dist/install.sh \
+            --title "Discord Quest Mirror $GITHUB_REF_NAME" \
+            --notes-file notes.md --generate-notes

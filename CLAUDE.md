@@ -14,7 +14,15 @@ Windows and macOS (`pwsh` required on macOS — see README).
 
 There is no package manifest or test suite. `build.ps1` is the only
 "tooling" — a source bundler, not a build system in the compiled-language
-sense.
+sense. GitHub Actions wraps it: `.github/workflows/ci.yml` fails any push
+where the committed `mirror.ps1` doesn't match a fresh `build.ps1` run, and
+`.github/workflows/release.yml` publishes a GitHub Release when a `v*` tag
+is pushed. The tag must equal `v` + `$Version` from `Main.Params.ps1`, so
+bump that first. The release attaches `QuestMirror-windows.zip` (`mirror.ps1`
++ `scripts/QuestMirror.cmd`, a double-click launcher) plus the raw
+`mirror.ps1`/`install.sh`. `docs/demo.svg` is the README's animated terminal
+demo. It's a hand-generated CSS-animated SVG replaying real tool output, so
+regenerate it if the tool's output format changes noticeably.
 
 ## Repository layout — source vs. generated
 
@@ -27,6 +35,7 @@ commit both.
 
 ```
 scripts/install.sh            # macOS entrypoint (curl | bash) - hand-maintained, not build.ps1 output
+scripts/QuestMirror.cmd       # Windows double-click launcher shipped in the release zip
 src/
 ├── Main.Params.ps1          # param() block + top-level constants (must stay first — see build.ps1)
 ├── Main.Driver.ps1          # Show-Help, Invoke-QuestMirror, REPL/non-interactive driver (must stay last — calls everything else)

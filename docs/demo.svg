@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="370" viewBox="0 0 760 370" role="img" aria-label="Demo: typing roblox into quest-mirror starts a process Discord detects as Roblox running">
+<style>
+text { font-family: ui-monospace, 'Cascadia Mono', Consolas, 'SF Mono', Menlo, 'DejaVu Sans Mono', monospace; font-size: 14px; white-space: pre; }
+.w { fill: #e6edf3; } .dim { fill: #7d8590; } .ok { fill: #3fb950; }
+.pc { fill: #39c5cf; } .pa { fill: #7d8590; } .cmd { fill: #e6edf3; }
+.cur { fill: #e6edf3; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes s0 { 0%, 2.494% { opacity: 0; } 2.500%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e0 { opacity: 0; animation: s0 16.0s linear infinite; }@keyframes t0 { 0%, 2.500% { width: 0; } 3.438% { width: 9.4px; } 4.375% { width: 17.9px; } 5.313% { width: 26.3px; } 6.250% { width: 34.8px; } 7.187% { width: 43.2px; } 8.125% { width: 51.7px; } 100% { width: 52.7px; } }#c0 rect { width: 0; animation: t0 16.0s steps(1) infinite; }@keyframes s1 { 0%, 10.931% { opacity: 0; } 10.938%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e1 { opacity: 0; animation: s1 16.0s linear infinite; }@keyframes s2 { 0%, 14.056% { opacity: 0; } 14.062%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e2 { opacity: 0; animation: s2 16.0s linear infinite; }@keyframes s3 { 0%, 16.056% { opacity: 0; } 16.062%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e3 { opacity: 0; animation: s3 16.0s linear infinite; }@keyframes s4 { 0%, 18.056% { opacity: 0; } 18.062%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e4 { opacity: 0; animation: s4 16.0s linear infinite; }@keyframes s5 { 0%, 20.056% { opacity: 0; } 20.062%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e5 { opacity: 0; animation: s5 16.0s linear infinite; }@keyframes s6 { 0%, 23.806% { opacity: 0; } 23.812%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e6 { opacity: 0; animation: s6 16.0s linear infinite; }@keyframes s7 { 0%, 25.806% { opacity: 0; } 25.812%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e7 { opacity: 0; animation: s7 16.0s linear infinite; }@keyframes s8 { 0%, 32.681% { opacity: 0; } 32.688%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e8 { opacity: 0; animation: s8 16.0s linear infinite; }@keyframes s9 { 0%, 32.681% { opacity: 0; } 32.688%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e9 { opacity: 0; animation: s9 16.0s linear infinite; }@keyframes t9 { 0%, 32.688% { width: 0; } 33.312% { width: 9.4px; } 33.938% { width: 17.9px; } 34.562% { width: 26.3px; } 35.188% { width: 34.8px; } 35.812% { width: 43.2px; } 36.438% { width: 51.7px; } 37.063% { width: 60.1px; } 100% { width: 61.1px; } }#c9 rect { width: 0; animation: t9 16.0s steps(1) infinite; }@keyframes s10 { 0%, 39.869% { opacity: 0; } 39.875%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e10 { opacity: 0; animation: s10 16.0s linear infinite; }@keyframes s11 { 0%, 41.431% { opacity: 0; } 41.438%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e11 { opacity: 0; animation: s11 16.0s linear infinite; }@keyframes s12 { 0%, 48.931% { opacity: 0; } 48.938%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e12 { opacity: 0; animation: s12 16.0s linear infinite; }@keyframes s13 { 0%, 48.931% { opacity: 0; } 48.938%, 95.000% { opacity: 1; } 97.500%, 100% { opacity: 0; } }.e13 { opacity: 0; animation: s13 16.0s linear infinite; }</style>
+<rect width="760" height="370" rx="10" fill="#0d1117"/>
+<rect width="760" height="34" rx="10" fill="#161b22"/>
+<rect y="24" width="760" height="10" fill="#161b22"/>
+<circle cx="20" cy="17" r="6" fill="#ff5f57"/><circle cx="40" cy="17" r="6" fill="#febc2e"/><circle cx="60" cy="17" r="6" fill="#28c840"/>
+<text x="380.0" y="22" text-anchor="middle" class="dim" style="font-size:12px">quest-mirror - PowerShell</text>
+<g class="e0"><text x="22" y="62"><tspan class="pc">quest-mirror </tspan><tspan class="pa">&gt; </tspan></text>
+<clipPath id="c0"><rect x="148.8" y="46" height="22"/></clipPath>
+<text x="148.8" y="62" class="cmd" clip-path="url(#c0)">roblox</text>
+</g>
+<text x="22" y="83" class="w e1">▸ Resolving &quot;roblox&quot;</text>
+<text x="22" y="104" class="dim e2">  Using cached game list (refreshed 2h ago)</text>
+<text x="22" y="125" class="ok e3">  ✓ Matched ROBLOX</text>
+<text x="22" y="146" class="dim e4">  Multiple executables found - using roblox.exe (add --pick to choose one)</text>
+<text x="22" y="167" class="ok e5">  ✓ Target exe: roblox.exe</text>
+<text x="22" y="188" class="ok e6">  ✓ Mirror running - PID 51168, expires ~01:33:41</text>
+<text x="22" y="209" class="dim e7">  Stop early with: /stop ROBLOX</text>
+<g class="e9"><text x="22" y="251"><tspan class="pc">quest-mirror </tspan><tspan class="pa">&gt; </tspan></text>
+<clipPath id="c9"><rect x="148.8" y="235" height="22"/></clipPath>
+<text x="148.8" y="251" class="cmd" clip-path="url(#c9)">/status</text>
+</g>
+<text x="22" y="272" class="dim e10">  GAME                         PID      EXPIRES</text>
+<text x="22" y="293" class="w e11">  ROBLOX                       51168    01:33:41</text>
+<g class="e13"><text x="22" y="335"><tspan class="pc">quest-mirror </tspan><tspan class="pa">&gt; </tspan></text>
+<rect class="cur" x="148.8" y="322" width="8" height="16"/>
+</g>
+</svg>

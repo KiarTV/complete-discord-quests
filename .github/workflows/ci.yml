@@ -1,0 +1,32 @@
+# Catches the "edited src/ but forgot to rebuild mirror.ps1" mistake before
+# it ships - the README's `irm | iex` one-liner runs the committed mirror.ps1
+# straight from master, so a stale build is a live bug for every user.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build-check:
+    runs-on: windows-latest
+    steps:
+      # LF checkout, matching what build.ps1 writes - otherwise the
+      # runner's autocrlf default makes the rebuild diff noisy.
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+
+      - name: mirror.ps1 matches src/ and parses
+        shell: powershell
+        run: |
+          .\build.ps1
+          git diff --exit-code -- mirror.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'mirror.ps1 is out of date - run .\build.ps1 and commit the result' }
+          $errors = $null; $tokens = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\mirror.ps1", [ref]$tokens, [ref]$errors)
+          if ($errors) { $errors; throw 'mirror.ps1 has syntax errors' }
+
+      - name: install.sh syntax
+        shell: bash
+        run: bash -n scripts/install.sh
