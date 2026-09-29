@@ -24,6 +24,12 @@ function Invoke-QuestMirror {
         $RawName = $Matches[1].Trim()
         $forcePick = $true
     }
+    # An empty query prefix-matches every name at the same score, so it
+    # would silently "match" an arbitrary game (e.g. typing just " --pick").
+    if ([string]::IsNullOrWhiteSpace($RawName)) {
+        Write-Err2 "Type a game name first, e.g. roblox --pick"
+        return
+    }
 
     Write-Step "Resolving `"$RawName`""
 
